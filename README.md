@@ -111,3 +111,4 @@ pinterest-app/
 
 
 ![image alt](https://github.com/Mayukh15/Pinterest-style-product-listing-page/blob/main/Screenshot%202026-03-09%20103644.png?raw=true)
+![image alt](https://github.com/Mayukh15/Pinterest-style-product-listing-page/blob/main/2nd%20screenshot%20of%20the%20pinterest%20product%20listing.png?raw=true)
