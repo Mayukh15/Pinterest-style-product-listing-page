@@ -31,7 +31,7 @@ A full-stack product listing app built with **React** (frontend) and **Node.js +
 cd backend
 npm install
 npm start
-# → Server running on http://localhost:4000
+
 ```
 
 ### 2. Start the Frontend
@@ -40,7 +40,7 @@ npm start
 cd frontend
 npm install
 npm run dev
-# → App running on http://localhost:3000
+
 ```
 
 
