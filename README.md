@@ -119,3 +119,5 @@ pinterest-app/
 **Skeleton Loaders**: Varying heights in skeleton cards match the real card variance, preventing layout shift when content loads.
 
 **Load More + Pagination**: Both implemented simultaneously. Load More appends data; pagination replaces and scrolls to top.
+
+![image alt]()
