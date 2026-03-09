@@ -4,7 +4,7 @@ A full-stack product listing app built with **React** (frontend) and **Node.js +
 
 ---
 
-## ✦ Features
+##  Features
 
 | Feature | Implementation |
 |---|---|
@@ -43,11 +43,7 @@ npm run dev
 # → App running on http://localhost:3000
 ```
 
-### 3. Demo (no backend required)
 
-Open `demo.html` directly in a browser. Uses a built-in mock API that simulates real network latency.
-
----
 
 ## 📡 API Reference
 
