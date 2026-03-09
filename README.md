@@ -108,16 +108,6 @@ pinterest-app/
 
 ---
 
-## 🧠 Technical Decisions
 
-**Masonry Layout**: Used CSS `columns` instead of JavaScript-based masonry (e.g. Masonry.js) to avoid layout thrashing. Pure CSS — performant and responsive.
 
-**Lazy Loading**: Native `IntersectionObserver` API with a `100px` root margin so images preload just before they enter the viewport.
-
-**Debounced Search**: 350ms debounce on search input to avoid hammering the API on every keystroke.
-
-**Skeleton Loaders**: Varying heights in skeleton cards match the real card variance, preventing layout shift when content loads.
-
-**Load More + Pagination**: Both implemented simultaneously. Load More appends data; pagination replaces and scrolls to top.
-
-![image alt]()
+![image alt](https://github.com/Mayukh15/Pinterest-style-product-listing-page/blob/main/Screenshot%202026-03-09%20103644.png?raw=true)
