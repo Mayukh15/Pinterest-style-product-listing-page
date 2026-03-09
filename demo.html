@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pinstyle – Pinterest-Style Product Listing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root {
+  --cream: #faf8f4; --sand: #f0ebe1; --warm-gray: #e8e2d9;
+  --clay: #c4a882; --rust: #c0714a; --deep: #2d2420;
+  --text: #3a3028; --muted: #8a7d72; --card-bg: #ffffff;
+  --shadow: 0 2px 20px rgba(45,36,32,0.08);
+  --shadow-hover: 0 8px 40px rgba(45,36,32,0.15);
+  --radius: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+/* Header */
+.header { position: sticky; top: 0; z-index: 100; background: rgba(250,248,244,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid var(--warm-gray); padding: 14px 24px; }
+.header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 24px; }
+.logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.logo-icon { font-size: 22px; color: var(--rust); }
+.logo-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--deep); letter-spacing: -0.5px; }
+.search-wrap { flex: 1; max-width: 560px; position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 16px; color: var(--muted); font-size: 18px; pointer-events: none; }
+.search-input { width: 100%; padding: 12px 44px 12px 46px; background: var(--sand); border: 2px solid transparent; border-radius: 100px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: all 0.2s; }
+.search-input:focus { border-color: var(--clay); background: white; }
+.search-input::placeholder { color: var(--muted); }
+.search-clear { position: absolute; right: 14px; color: var(--muted); font-size: 20px; transition: color 0.2s; }
+.search-clear:hover { color: var(--rust); }
+
+/* Filter */
+.filter-bar { background: var(--cream); border-bottom: 1px solid var(--warm-gray); padding: 12px 24px; overflow-x: auto; scrollbar-width: none; }
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-inner { max-width: 1400px; margin: 0 auto; display: flex; gap: 8px; }
+.filter-pill { padding: 7px 18px; border-radius: 100px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--sand); border: 2px solid transparent; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+.filter-pill:hover { background: var(--warm-gray); color: var(--text); }
+.filter-pill.active { background: var(--rust); color: white; border-color: var(--rust); }
+
+/* Stats */
+.stats-bar { max-width: 1400px; margin: 0 auto; padding: 16px 24px 0; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.search-tag { background: var(--sand); padding: 3px 10px; border-radius: 100px; color: var(--clay); font-weight: 500; }
+
+/* Main */
+.main { max-width: 1400px; margin: 0 auto; padding: 20px 24px 40px; }
+
+/* Masonry */
+.masonry-grid { columns: 5; column-gap: 16px; }
+@media (max-width: 1280px) { .masonry-grid { columns: 4; } }
+@media (max-width: 960px) { .masonry-grid { columns: 3; } }
+@media (max-width: 640px) { .masonry-grid { columns: 2; } }
+
+/* Card */
+.card { break-inside: avoid; margin-bottom: 16px; background: var(--card-bg); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: box-shadow 0.3s, transform 0.3s; animation: fadeUp 0.4s ease both; cursor: pointer; }
+.card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+.card-img-wrap { position: relative; overflow: hidden; background: var(--sand); }
+.img-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+.img-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+.card:hover .img-wrapper img { transform: scale(1.04); }
+
+.card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,36,32,0.3) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: flex-end; padding: 12px; }
+.card:hover .card-overlay { opacity: 1; }
+.btn-save { background: white; color: var(--rust); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 100px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.btn-save:hover { background: var(--rust); color: white; }
+
+.category-badge { position: absolute; top: 10px; left: 10px; background: rgba(250,248,244,0.9); color: var(--clay); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; backdrop-filter: blur(4px); }
+
+.card-body { padding: 12px 14px 14px; }
+.card-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-price { font-size: 14px; font-weight: 600; color: var(--rust); font-family: 'Playfair Display', serif; }
+
+/* Skeleton */
+.skeleton-card { animation: none !important; box-shadow: none; border: 1px solid var(--warm-gray); }
+.skeleton-card:hover { transform: none !important; box-shadow: none !important; }
+.skeleton-img { width: 100%; height: 100%; background: linear-gradient(90deg, var(--sand) 25%, var(--warm-gray) 50%, var(--sand) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.skeleton-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--sand) 25%, var(--warm-gray) 50%, var(--sand) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Error */
+.error-card { text-align: center; padding: 60px 32px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); max-width: 400px; margin: 40px auto; }
+.error-icon { font-size: 40px; color: var(--clay); margin-bottom: 16px; }
+.error-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--deep); margin-bottom: 8px; }
+.error-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.btn-retry { background: var(--rust); color: white; padding: 10px 28px; border-radius: 100px; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+.btn-retry:hover { background: var(--deep); }
+
+/* Empty */
+.empty-state { text-align: center; padding: 80px 32px; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 16px; color: var(--clay); opacity: 0.5; }
+.empty-state h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--deep); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* Load More */
+.load-more-wrap { display: flex; justify-content: center; margin: 32px 0 16px; }
+.btn-load-more { background: var(--deep); color: white; padding: 14px 48px; border-radius: 100px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.25s; display: flex; align-items: center; gap: 10px; min-width: 160px; justify-content: center; }
+.btn-load-more:hover:not(:disabled) { background: var(--rust); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(192,113,74,0.3); }
+.btn-load-more:disabled { opacity: 0.7; }
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; padding: 20px 0; }
+.page-btn { width: 38px; height: 38px; border-radius: 50%; font-size: 13px; font-weight: 500; color: var(--muted); background: white; border: 2px solid var(--warm-gray); transition: all 0.2s; }
+.page-btn:hover:not(:disabled) { border-color: var(--clay); color: var(--text); }
+.page-btn.active { background: var(--rust); color: white; border-color: var(--rust); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-dots { color: var(--muted); font-size: 14px; padding: 0 4px; }
+
+/* Footer */
+.footer { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--warm-gray); background: var(--sand); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Mock API (simulates backend) ──────────────────────────────────────────
+const ALL_PRODUCTS = [
+  { id:1,  title:"Minimalist Ceramic Vase",     price:49.99,  category:"Home",       image:"https://images.unsplash.com/photo-1612196808214-b40bc0ac78f5?w=400&q=80" },
+  { id:2,  title:"Leather Crossbody Bag",       price:129.00, category:"Fashion",    image:"https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80" },
+  { id:3,  title:"Wooden Desk Lamp",            price:89.50,  category:"Home",       image:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&q=80" },
+  { id:4,  title:"Vintage Sunglasses",          price:65.00,  category:"Fashion",    image:"https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&q=80" },
+  { id:5,  title:"Succulent Plant Set",         price:34.99,  category:"Plants",     image:"https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80" },
+  { id:6,  title:"Linen Throw Blanket",         price:75.00,  category:"Home",       image:"https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?w=400&q=80" },
+  { id:7,  title:"Artisan Coffee Mug",          price:28.00,  category:"Kitchen",    image:"https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&q=80" },
+  { id:8,  title:"Silk Scarf",                  price:95.00,  category:"Fashion",    image:"https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&q=80" },
+  { id:9,  title:"Macramé Wall Hanging",        price:55.00,  category:"Home",       image:"https://images.unsplash.com/photo-1567225591450-06036b3392a6?w=400&q=80" },
+  { id:10, title:"Terracotta Pot",              price:22.99,  category:"Plants",     image:"https://images.unsplash.com/photo-1622372738946-62e02505feb3?w=400&q=80" },
+  { id:11, title:"Straw Tote Bag",              price:45.00,  category:"Fashion",    image:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&q=80" },
+  { id:12, title:"Marble Candle Holder",        price:39.00,  category:"Home",       image:"https://images.unsplash.com/photo-1602532305019-3dbbd482dae9?w=400&q=80" },
+  { id:13, title:"Rattan Side Table",           price:149.00, category:"Furniture",  image:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80" },
+  { id:14, title:"Gold Hoop Earrings",          price:32.00,  category:"Jewelry",    image:"https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=80" },
+  { id:15, title:"Linen Tote Bag",              price:29.99,  category:"Fashion",    image:"https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&q=80" },
+  { id:16, title:"Beeswax Candle Set",          price:42.00,  category:"Home",       image:"https://images.unsplash.com/photo-1602523961358-f9f03dd557db?w=400&q=80" },
+  { id:17, title:"Woven Cushion Cover",         price:25.00,  category:"Home",       image:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80" },
+  { id:18, title:"Monstera Plant",              price:59.99,  category:"Plants",     image:"https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80" },
+  { id:19, title:"Denim Jacket",                price:119.00, category:"Fashion",    image:"https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?w=400&q=80" },
+  { id:20, title:"Ceramic Serving Bowl",        price:58.00,  category:"Kitchen",    image:"https://images.unsplash.com/photo-1490312278390-ab64016b5873?w=400&q=80" },
+  { id:21, title:"Boho Dreamcatcher",           price:19.99,  category:"Home",       image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id:22, title:"Raffia Sun Hat",              price:38.00,  category:"Fashion",    image:"https://images.unsplash.com/photo-1521369909029-2afed882baee?w=400&q=80" },
+  { id:23, title:"Essential Oil Diffuser",      price:67.00,  category:"Wellness",   image:"https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&q=80" },
+  { id:24, title:"Vintage Leather Journal",     price:31.00,  category:"Stationery", image:"https://images.unsplash.com/photo-1518893494013-481c1d8ed3fd?w=400&q=80" },
+  { id:25, title:"Knit Sweater",                price:89.00,  category:"Fashion",    image:"https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=400&q=80" },
+  { id:26, title:"Bamboo Cutting Board",        price:36.00,  category:"Kitchen",    image:"https://images.unsplash.com/photo-1606214174585-fe31582dc6ee?w=400&q=80" },
+  { id:27, title:"Crystal Pendant Necklace",    price:48.00,  category:"Jewelry",    image:"https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80" },
+  { id:28, title:"Jute Rug 4x6",               price:175.00, category:"Home",       image:"https://images.unsplash.com/photo-1600166898405-da9535204843?w=400&q=80" },
+  { id:29, title:"Pressed Flower Frame",        price:44.00,  category:"Art",        image:"https://images.unsplash.com/photo-1490750967868-88df5691cc5c?w=400&q=80" },
+  { id:30, title:"Wooden Jewelry Box",          price:62.00,  category:"Accessories",image:"https://images.unsplash.com/photo-1584346133934-a3afd2a33c4c?w=400&q=80" },
+  { id:31, title:"Lemon Verbena Soap",          price:12.99,  category:"Wellness",   image:"https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?w=400&q=80" },
+  { id:32, title:"Vintage Mirror",              price:225.00, category:"Furniture",  image:"https://images.unsplash.com/photo-1618220252344-8ec99ec624b1?w=400&q=80" },
+  { id:33, title:"Floral Tray",                 price:27.00,  category:"Home",       image:"https://images.unsplash.com/photo-1609082830682-0e8f2ae5c1b1?w=400&q=80" },
+  { id:34, title:"Satin Sleep Mask",            price:18.00,  category:"Wellness",   image:"https://images.unsplash.com/photo-1505693314120-0d443867891c?w=400&q=80" },
+  { id:35, title:"Handwoven Basket",            price:52.00,  category:"Home",       image:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&q=80" },
+  { id:36, title:"Boho Ankle Boots",            price:139.00, category:"Fashion",    image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" },
+  { id:37, title:"Macadamia Body Oil",          price:33.00,  category:"Wellness",   image:"https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=80" },
+  { id:38, title:"Copper Plant Stand",          price:88.00,  category:"Plants",     image:"https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=400&q=80" },
+  { id:39, title:"Pearl Hair Pins",             price:14.99,  category:"Accessories",image:"https://images.unsplash.com/photo-1596516109370-29001ec8ec36?w=400&q=80" },
+  { id:40, title:"Printed Silk Blouse",         price:105.00, category:"Fashion",    image:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+];
+
+const CATEGORIES = ["All", ...new Set(ALL_PRODUCTS.map(p => p.category))];
+
+function mockFetch(page, limit, search, category) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      let filtered = ALL_PRODUCTS;
+      if (search) filtered = filtered.filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()));
+      if (category && category !== "All") filtered = filtered.filter(p => p.category === category);
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / limit);
+      const start = (page - 1) * limit;
+      resolve({ products: filtered.slice(start, start + limit), currentPage: page, totalPages, totalProducts: total, hasMore: page < totalPages });
+    }, 600 + Math.random() * 400);
+  });
+}
+
+// ─── Lazy Image ─────────────────────────────────────────────────────────────
+function LazyImage({ src, alt }) {
+  const ref = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { rootMargin: "100px" });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className="img-wrapper">
+      {!loaded && <div className="skeleton-img" />}
+      {inView && <img src={src} alt={alt} onLoad={() => setLoaded(true)} style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.4s ease" }} />}
+    </div>
+  );
+}
+
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+const HEIGHTS = [180, 220, 200, 260, 190, 240, 210, 250, 195, 235];
+function SkeletonCard({ idx }) {
+  const h = HEIGHTS[idx % HEIGHTS.length];
+  return (
+    <div className="card skeleton-card">
+      <div style={{ position: "relative", height: h }}><div className="skeleton-img" style={{ position:"absolute", inset:0 }} /></div>
+      <div className="card-body">
+        <div className="skeleton-line" style={{ width: "75%", marginBottom: 8 }} />
+        <div className="skeleton-line" style={{ width: "35%" }} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Product Card ────────────────────────────────────────────────────────────
+function ProductCard({ product, index }) {
+  const h = HEIGHTS[index % HEIGHTS.length];
+  return (
+    <div className="card" style={{ animationDelay: `${(index % 10) * 60}ms` }}>
+      <div className="card-img-wrap" style={{ height: h }}>
+        <LazyImage src={product.image} alt={product.title} />
+        <div className="card-overlay">
+          <button className="btn-save">♡ Save</button>
+        </div>
+        <span className="category-badge">{product.category}</span>
+      </div>
+      <div className="card-body">
+        <h3 className="card-title">{product.title}</h3>
+        <p className="card-price">${product.price.toFixed(2)}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+function App() {
+  const [products, setProducts]         = useState([]);
+  const [page, setPage]                 = useState(1);
+  const [totalPages, setTotalPages]     = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [loading, setLoading]           = useState(false);
+  const [loadingMore, setLoadingMore]   = useState(false);
+  const [error, setError]               = useState(null);
+  const [search, setSearch]             = useState("");
+  const [debouncedSearch, setDbSearch]  = useState("");
+  const [category, setCategory]         = useState("All");
+  const [hasMore, setHasMore]           = useState(false);
+  const LIMIT = 10;
+
+  useEffect(() => {
+    const t = setTimeout(() => setDbSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const fetchProducts = useCallback(async (pg, append = false) => {
+    append ? setLoadingMore(true) : setLoading(true);
+    setError(null);
+    try {
+      const data = await mockFetch(pg, LIMIT, debouncedSearch, category);
+      setProducts(prev => append ? [...prev, ...data.products] : data.products);
+      setPage(data.currentPage);
+      setTotalPages(data.totalPages);
+      setTotalProducts(data.totalProducts);
+      setHasMore(data.hasMore);
+    } catch(e) {
+      setError("Failed to load products.");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [debouncedSearch, category]);
+
+  useEffect(() => { fetchProducts(1, false); }, [debouncedSearch, category]);
+
+  const handlePageNav = (p) => {
+    fetchProducts(p, false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Pagination items
+  const pageItems = Array.from({ length: totalPages }, (_, i) => i + 1)
+    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+    .reduce((acc, p, idx, arr) => {
+      if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+      acc.push(p);
+      return acc;
+    }, []);
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="header-inner">
+          <div className="logo">
+            <span className="logo-icon">✦</span>
+            <span className="logo-text">Pinstyle</span>
+          </div>
+          <div className="search-wrap">
+            <span className="search-icon">🔍</span>
+            <input className="search-input" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
+            {search && <button className="search-clear" onClick={() => setSearch("")}>×</button>}
+          </div>
+        </div>
+      </header>
+
+      <div className="filter-bar">
+        <div className="filter-inner">
+          {CATEGORIES.map(cat => (
+            <button key={cat} className={`filter-pill ${category === cat ? "active" : ""}`} onClick={() => setCategory(cat)}>{cat}</button>
+          ))}
+        </div>
+      </div>
+
+      {!loading && !error && (
+        <div className="stats-bar">
+          <span>{totalProducts} products found</span>
+          {debouncedSearch && <span className="search-tag">"{debouncedSearch}"</span>}
+        </div>
+      )}
+
+      <main className="main">
+        {error && (
+          <div className="error-card">
+            <div className="error-icon">⚠</div>
+            <h3>Something went wrong</h3>
+            <p>{error}</p>
+            <button className="btn-retry" onClick={() => fetchProducts(1, false)}>Try Again</button>
+          </div>
+        )}
+
+        {loading && (
+          <div className="masonry-grid">
+            {Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} idx={i} />)}
+          </div>
+        )}
+
+        {!loading && !error && products.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">◎</div>
+            <h3>No products found</h3>
+            <p>Try adjusting your search or filter</p>
+          </div>
+        )}
+
+        {!loading && products.length > 0 && (
+          <div className="masonry-grid">
+            {products.map((product, i) => <ProductCard key={`${product.id}-${i}`} product={product} index={i} />)}
+            {loadingMore && Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={`sk-${i}`} idx={i} />)}
+          </div>
+        )}
+
+        {!loading && !error && hasMore && (
+          <div className="load-more-wrap">
+            <button className={`btn-load-more ${loadingMore ? "loading" : ""}`} onClick={() => fetchProducts(page + 1, true)} disabled={loadingMore}>
+              {loadingMore ? <span className="spinner" /> : "Load More"}
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && totalPages > 1 && (
+          <div className="pagination">
+            <button className="page-btn" disabled={page === 1} onClick={() => handlePageNav(page - 1)}>←</button>
+            {pageItems.map((p, i) =>
+              p === "..." ? <span key={`d${i}`} className="page-dots">…</span>
+              : <button key={p} className={`page-btn ${p === page ? "active" : ""}`} onClick={() => handlePageNav(p)}>{p}</button>
+            )}
+            <button className="page-btn" disabled={page === totalPages} onClick={() => handlePageNav(page + 1)}>→</button>
+          </div>
+        )}
+      </main>
+
+      <footer className="footer">
+        <p>Made with ✦ by Pinstyle · {totalProducts} beautiful products</p>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
